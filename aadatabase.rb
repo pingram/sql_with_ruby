@@ -82,8 +82,11 @@ class User
         replies.user_id = ?
     SQL
 
-    # p results
     results.map { |result| Reply.new(result) }
+  end
+
+  def followed_questions
+    QuestionFollower.followed_questions_for_user_id(id)
   end
 
 end
@@ -156,6 +159,9 @@ class Question
     results.map { |result| Reply.new(result) }
   end
 
+  def followers
+    QuestionFollower.followers_for_question_id(id)
+  end
 
 end
 
@@ -186,6 +192,44 @@ class QuestionFollower
 
     QuestionFollower.new(result.first)
   end
+
+  def self.followers_for_question_id(find_id)
+    results = QuestionsDatabase.instance.execute(<<-SQL, find_id)
+      SELECT
+        u.id, u.fname, u.lname
+      FROM
+        question_followers qf
+      JOIN
+        users u
+      ON
+        qf.user_id = u.id
+      WHERE
+        qf.question_id = ?
+    SQL
+
+    results.map { |result| User.new(result) }
+  end
+
+  def self.followed_questions_for_user_id(find_id)
+    results = QuestionsDatabase.instance.execute(<<-SQL, find_id)
+      SELECT
+         q.id, q.title, q.body, q.author_id
+      FROM
+        question_followers qf
+      JOIN
+        questions q
+      ON
+        qf.question_id = q.id
+      WHERE
+        qf.user_id = ?
+    SQL
+
+    p results
+
+    results.map { |result| Question.new(result) }
+
+  end
+
 end
 
 class Reply
