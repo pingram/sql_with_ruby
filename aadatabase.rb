@@ -140,9 +140,20 @@ class Question
         users.id = ?
     SQL
 
-    #result.first.values.join(" ")
-
     User.new(result.first)
+  end
+
+  def replies
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+      SELECT
+        *
+      FROM
+        replies
+      WHERE
+        replies.question_id = ?
+    SQL
+
+    results.map { |result| Reply.new(result) }
   end
 
 
@@ -205,6 +216,72 @@ class Reply
 
     Reply.new(result.first)
   end
+
+  def self.find_by_user_id(find_id)
+    results = QuestionsDatabase.instance.execute(<<-SQL,find_id)
+      SELECT
+        *
+      FROM
+        replies
+      WHERE
+        replies.user_id = ?
+    SQL
+
+    results.map { |result| Reply.new(result) }
+  end
+
+  def author
+    result = QuestionsDatabase.instance.execute(<<-SQL,user_id)
+      SELECT
+        *
+      FROM
+        users
+      WHERE
+        users.id = ?
+    SQL
+
+    User.new(result.first)
+  end
+
+  def question
+    result = QuestionsDatabase.instance.execute(<<-SQL, question_id)
+      SELECT
+        *
+      FROM
+        questions
+      WHERE
+        questions.id = ?
+    SQL
+
+    Question.new(result.first)
+  end
+
+  def parent_reply
+    result = QuestionsDatabase.instance.execute(<<-SQL, parent_reply_id)
+      SELECT
+        *
+      FROM
+        replies
+      WHERE
+        replies.id = ?
+    SQL
+
+    Reply.new(result.first)
+  end
+
+  def child_replies
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+      SELECT
+        *
+      FROM
+        replies
+      WHERE
+        replies.parent_reply_id = ?
+    SQL
+
+    results.map { |result| Reply.new(result) }
+  end
+
 end
 
 class QuestionLike
