@@ -58,6 +58,34 @@ class User
 
     User.new(result.first)
   end
+
+  def authored_questions
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+      SELECT
+        *
+      FROM
+        questions
+      WHERE
+        questions.author_id = ?
+    SQL
+
+    results.map { |result| Question.new(result) }
+  end
+
+  def authored_replies
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+      SELECT
+        *
+      FROM
+        replies
+      WHERE
+        replies.user_id = ?
+    SQL
+
+    # p results
+    results.map { |result| Reply.new(result) }
+  end
+
 end
 
 class Question
