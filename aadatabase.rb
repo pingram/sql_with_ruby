@@ -25,7 +25,6 @@ class User
   end
 
   def initialize(options = {})
-    p options
     @id = options["id"]
     @fname = options["fname"]
     @lname = options["lname"]
@@ -92,6 +91,30 @@ class User
   def liked_questions
     QuestionLike.liked_questions_for_user_id(id)
   end
+
+  def average_karma
+    results = QuestionsDatabase.instance.execute(<<-SQL, id, id)
+      SELECT
+        (COUNT(ql.question_id) * 1.0 /
+         (SELECT COUNT(*)
+          FROM users u
+          JOIN questions q
+          ON u.id = q.author_id
+          WHERE u.id = ?
+        )) avg_likes
+      FROM
+        questions q
+      JOIN
+        question_likes ql
+      ON
+        q.id = ql.question_id
+      WHERE
+        q.author_id = ?
+    SQL
+
+    results.first["avg_likes"]
+  end
+
 end
 
 class Question
@@ -175,6 +198,10 @@ class Question
 
   def num_likes
     QuestionLike.num_likes_for_question_id(id)
+  end
+
+  def self.most_liked(n)
+    QuestionLike.most_liked_questions(n)
   end
 end
 
@@ -433,6 +460,25 @@ class QuestionLike
     SQL
 
     results.map { |result| Question.new(result) }
+  end
+
+  def self.most_liked_questions(n)
+    results = QuestionsDatabase.instance.execute(<<-SQL)
+      SELECT
+         q.id, q.title, q.body, q.author_id
+      FROM
+        question_likes ql
+      JOIN
+        questions q
+      ON
+        ql.question_id = q.id
+      GROUP BY
+        q.id
+      ORDER BY
+        COUNT(ql.user_id) DESC
+    SQL
+
+    results.map { |result| Question.new(result) }.take(n)
   end
 end
 
