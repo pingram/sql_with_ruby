@@ -10,10 +10,11 @@ class QuestionsDatabase < SQLite3::Database
     super("AAquestions.db")
 
     self.results_as_hash = true
-
     self.type_translation = true
   end
 end
+
+#class
 
 class User
   attr_accessor :id, :fname, :lname
@@ -24,9 +25,38 @@ class User
   end
 
   def initialize(options = {})
+    p options
     @id = options["id"]
     @fname = options["fname"]
     @lname = options["lname"]
+  end
+
+  def self.find_by_id(find_id)
+    #id = id.to_i
+    result = QuestionsDatabase.instance.execute(<<-SQL,find_id)
+      SELECT
+        *
+      FROM
+        users
+      WHERE
+        users.id = ?
+    SQL
+
+    User.new(result.first)
+  end
+
+  def self.find_by_name(fname, lname)
+    result = QuestionsDatabase.instance.execute(<<-SQL,fname, lname)
+      SELECT
+        *
+      FROM
+        users
+      WHERE
+        users.fname = ? AND
+        users.lname = ?
+    SQL
+
+    User.new(result.first)
   end
 end
 
@@ -44,6 +74,22 @@ class Question
     @body = options["body"]
     @author_id = options["author_id"]
   end
+
+  def self.find_by_id(find_id)
+    #id = id.to_i
+    result = QuestionsDatabase.instance.execute(<<-SQL,find_id)
+      SELECT
+        *
+      FROM
+        questions
+      WHERE
+        questions.id = ?
+    SQL
+
+    Question.new(result.first)
+  end
+
+
 end
 
 class QuestionFollower
@@ -58,6 +104,20 @@ class QuestionFollower
     @id = options["id"]
     @question_id = options["question_id"]
     @user_id = options["user_id"]
+  end
+
+
+  def self.find_by_id(find_id)
+    result = QuestionsDatabase.instance.execute(<<-SQL,find_id)
+      SELECT
+        *
+      FROM
+        question_followers
+      WHERE
+        question_followers.id = ?
+    SQL
+
+    QuestionFollower.new(result.first)
   end
 end
 
@@ -76,6 +136,19 @@ class Reply
     @user_id = options["user_id"]
     @body = options["body"]
   end
+
+  def self.find_by_id(find_id)
+    result = QuestionsDatabase.instance.execute(<<-SQL,find_id)
+      SELECT
+        *
+      FROM
+        replies
+      WHERE
+        replies.id = ?
+    SQL
+
+    Reply.new(result.first)
+  end
 end
 
 class QuestionLike
@@ -91,10 +164,27 @@ class QuestionLike
     @question_id = options["question_id"]
     @user_id = options["user_id"]
   end
+
+  def self.find_by_id(find_id)
+    result = QuestionsDatabase.instance.execute(<<-SQL,find_id)
+      SELECT
+        *
+      FROM
+        question_likes
+      WHERE
+        question_likes.id = ?
+    SQL
+
+    QuestionLike.new(result.first)
+  end
 end
 
 
-
+#
+# puts "QuestionLikes:"
+# p QuestionLike.all
+# puts "Replies:"
+# p Reply.all
 
 
 
