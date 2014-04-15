@@ -117,6 +117,34 @@ class Question
     Question.new(result.first)
   end
 
+  def self.find_by_author_id(id)
+    results = QuestionsDatabase.instance.execute(<<-SQL, id)
+      SELECT
+        *
+      FROM
+        questions
+      WHERE
+        questions.author_id = ?
+    SQL
+
+    results.map { |result| Question.new(result) }
+  end
+
+  def author
+    result = QuestionsDatabase.instance.execute(<<-SQL, id)
+      SELECT
+        *
+      FROM
+        users
+      WHERE
+        users.id = ?
+    SQL
+
+    #result.first.values.join(" ")
+
+    User.new(result.first)
+  end
+
 
 end
 
