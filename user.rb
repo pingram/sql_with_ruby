@@ -104,4 +104,27 @@ class User
     results.first["avg_likes"]
   end
 
+  def save
+
+    if self.id.nil?
+      QuestionsDatabase.instance.execute(<<-SQL, :fname => fname, :lname => lname)
+        INSERT INTO
+          users (fname, lname)
+        VALUES
+          (:fname, :lname)
+      SQL
+      @id = QuestionsDatabase.instance.last_insert_row_id
+    else
+      QuestionsDatabase.instance.execute(<<-SQL, :id => id, :fname => fname, :lname => lname)
+        UPDATE
+          users
+        SET
+          fname = :fname,
+          lname = :lname
+        WHERE
+          id = :id
+      SQL
+    end
+  end
+
 end

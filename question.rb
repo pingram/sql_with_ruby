@@ -11,7 +11,7 @@ class Question
 
   def self.all
     results = QuestionsDatabase.instance.execute("SELECT * FROM questions")
-    results.map { |result| User.new(result) }
+    results.map { |result| Question.new(result) }
   end
 
   def initialize(options = {})
@@ -19,6 +19,30 @@ class Question
     @title = options["title"]
     @body = options["body"]
     @author_id = options["author_id"]
+  end
+
+  def save
+
+    if self.id.nil?
+      QuestionsDatabase.instance.execute(<<-SQL, :title => title, :body => body, :author_id => author_id)
+        INSERT INTO
+          questions (title, body, author_id)
+        VALUES
+          (:title, :body, :author_id)
+      SQL
+      @id = QuestionsDatabase.instance.last_insert_row_id
+    else
+      QuestionsDatabase.instance.execute(<<-SQL, :title => title, :body => body, :author_id => author_id, :id => id)
+        UPDATE
+          questions
+        SET
+          title = :title,
+          body = :body,
+          author_id = :author_id
+        WHERE
+          id = :id
+      SQL
+    end
   end
 
   def self.find_by_id(find_id)

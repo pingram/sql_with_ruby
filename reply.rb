@@ -20,6 +20,31 @@ class Reply
     @body = options["body"]
   end
 
+  def save
+
+    if self.id.nil?
+      QuestionsDatabase.instance.execute(<<-SQL, :question_id => question_id, :parent_reply_id => parent_reply_id, :user_id => user_id, :body => body)
+        INSERT INTO
+          replies (question_id, parent_reply_id, user_id, body)
+        VALUES
+          (:question_id, :parent_reply_id, :user_id, :body)
+      SQL
+      @id = QuestionsDatabase.instance.last_insert_row_id
+    else
+      QuestionsDatabase.instance.execute(<<-SQL, :question_id => question_id, :parent_reply_id => parent_reply_id, :user_id => user_id, :body => body, :id => id)
+        UPDATE
+          replies
+        SET
+          question_id = :question_id,
+          parent_reply_id = :parent_reply_id,
+          user_id = :user_id,
+          body = :body
+        WHERE
+          id = :id
+      SQL
+    end
+  end
+
   def self.find_by_id(find_id)
     result = QuestionsDatabase.instance.execute(<<-SQL,find_id)
       SELECT
