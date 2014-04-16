@@ -19,6 +19,7 @@ end
 class SaveObjects
 
   def initialize
+    @id = 1
     @fname = 'aa2'
     @lname = 'adfa2'
   end
@@ -29,6 +30,13 @@ class SaveObjects
     inst_var_values = inst_var_keys.map do |iv|
       self.instance_variable_get(iv)
     end
+
+    user_id_name = inst_var_keys.shift
+    user_id_name = user_id_name.to_s.delete('@')
+
+    user_id_value = inst_var_values.shift
+
+
     inst_var_keys.map!(&:to_s)
     inst_var_keys.map! do |str|
       str.delete('@')
@@ -54,10 +62,14 @@ class SaveObjects
     end
     str_vals = str_vals[0..-3]
     str_vals += ')'
-    p str_vals
+    p str_cols, str_vals, user_id_value, user_id_name
 
 
-    sql_str = " INSERT INTO users #{str_cols} VALUES #{str_vals}"
+    if self.id.nil?
+      sql_str = " INSERT INTO users #{str_cols} VALUES #{str_vals}"
+    else
+      sql_str = " UPDATE users SET #{str_cols} WHERE id = @{id}"
+    end
 
     # str = " INSERT INTO users (fname, lname) VALUES ('ABC', 'DEF') "
     #
