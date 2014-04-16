@@ -5,7 +5,7 @@ require_relative 'reply.rb'
 require_relative 'question_like.rb'
 
 
-class User
+class User <SaveObjects
   attr_accessor :id, :fname, :lname
 
   def self.all
